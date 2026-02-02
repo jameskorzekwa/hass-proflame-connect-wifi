@@ -44,7 +44,7 @@ If you want to contribute to this please read the [Contribution guidelines](CONT
 [buymecoffee]: https://www.buymeacoffee.com/pharrox
 [buymecoffeebadge]: https://img.shields.io/badge/buy%20me%20a%20coffee-donate-yellow.svg?style=for-the-badge
 [commits-shield]: https://img.shields.io/github/commit-activity/y/Pharrox/hass-proflame-connect-wifi.svg?style=for-the-badge
-[commits]: https://github.com/Pharrox/hass-proflame-connect-wifi/commits/master
+[commits]: https://github.com/Pharrox/hass-proflame-connect-wifi/commits/main
 [discord]: https://discord.gg/Qa5fW2R
 [discord-shield]: https://img.shields.io/discord/330944238910963714.svg?style=for-the-badge
 [exampleimg]: example.png
