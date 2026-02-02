@@ -113,6 +113,9 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 step_id='user'
             )
 
+
+        self._async_abort_entries_match({CONF_HOST: user_input[CONF_HOST]})
+
         connected = await validate_input(self.hass, user_input)
         if not connected:
             _LOGGER.error(

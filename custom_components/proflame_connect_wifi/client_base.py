@@ -64,26 +64,38 @@ class ProflameClientBase:
 
     async def _connect(self):
         """Maintain an open connection to the websocket."""
-        tasks = []
-        try:
-            async for websocket in connect(self.uri, ping_interval=None):
-                self._debug('Connection opened')
-                try:
-                    self._ws = websocket
-                    if not tasks:
-                        tasks = [
-                            asyncio.create_task(self._dispatcher()),
-                            asyncio.create_task(self._listener()),
-                            asyncio.create_task(self._keepalive()),
-                        ]
-                    await self._send(ApiControl.CONN_SYN)
-                    await asyncio.gather(*tasks, return_exceptions=True)
-                except (ConnectionClosed, ConnectionClosedError):
-                    msg = 'Attempting to reopen after connection closed unexpectedly'
-                    self._warning(msg)
-        except asyncio.CancelledError:
-            for task in tasks or []:
-                task.cancel()
+        while not self._shutdown:
+            tasks = []
+            try:
+                async with connect(self.uri, ping_interval=None) as websocket:
+                    self._debug('Connection opened')
+                    try:
+                        self._ws = websocket
+                        if not tasks:
+                            tasks = [
+                                asyncio.create_task(self._dispatcher()),
+                                asyncio.create_task(self._listener()),
+                                asyncio.create_task(self._keepalive()),
+                            ]
+                        await self._send(ApiControl.CONN_SYN)
+                        await asyncio.gather(*tasks, return_exceptions=True)
+                    except (ConnectionClosed, ConnectionClosedError):
+                        msg = 'Attempting to reopen after connection closed unexpectedly'
+                        self._warning(msg)
+                    finally:
+                        for task in tasks:
+                            task.cancel()
+            except (OSError, asyncio.TimeoutError) as err:
+                self._warning("Error connecting to fireplace: %s", err)
+                await asyncio.sleep(5)
+            except asyncio.CancelledError:
+                break
+            except Exception: # pylint: disable=broad-exception-caught
+                self._exception('Unexpected error pending connection')
+                await asyncio.sleep(5)
+            
+            if not self._auto_reconnect:
+                break
 
     async def _dispatcher(self) -> None:
         """Handle the sending of messages in an interruption safe way."""
