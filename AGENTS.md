@@ -27,6 +27,31 @@ Whenever you modify any code in this repository, you MUST perform the following 
     *   If you add new imports, ensure `pyproject.toml` is updated.
     *   Run `poetry install` or `poetry update` if `pyproject.toml` changes.
 
+## Commit Message Conventions (Required for Releases)
+
+This repository uses **semantic-release** with the `@semantic-release/commit-analyzer` plugin. A new GitHub Release (and version tag) is **only** created when the commit message follows the [Conventional Commits](https://www.conventionalcommits.org/) format:
+
+| Prefix | Release Type | Example Version Change |
+|---|---|---|
+| `fix: ...` or `fix(scope): ...` | Patch | `1.0.4` → `1.0.5` |
+| `feat: ...` or `feat(scope): ...` | Minor | `1.0.4` → `1.1.0` |
+| `BREAKING CHANGE: ...` in the footer | Major | `1.0.4` → `2.0.0` |
+
+**If the commit message does not start with `fix:` or `feat:` (or similar recognized prefixes), no release will be created.**
+
+### Examples
+
+```
+# ✅ WILL trigger a release
+fix(config_flow): prevent duplicate device discovery
+feat: add support for multiple fireplaces
+
+# ❌ Will NOT trigger a release
+Add connectivity check during DHCP discovery
+Update tests for config flow
+Refactor client module
+```
+
 ## General Guidelines
 
 -   Follow semantic versioning principles.
