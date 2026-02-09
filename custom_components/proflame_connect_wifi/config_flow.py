@@ -88,19 +88,19 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     async def _async_set_unique_id(self, unique_id: str) -> None:
         """Set the config entry's unique ID and validate no duplicates."""
         await self.async_set_unique_id(unique_id)
-        if (self.context.get(CONF_HOST, None)):
-            self._abort_if_unique_id_configured(
-                updates={
-                    CONF_HOST: self.context[CONF_HOST],
-                },
-            )
-            self._async_abort_entries_match(
-                match_dict={
-                    CONF_HOST: self.context[CONF_HOST],
-                },
-            )
-        else:
-            self._abort_if_unique_id_configured()
+        updates = {}
+        if self.context.get(CONF_HOST):
+            updates[CONF_HOST] = self.context[CONF_HOST]
+        if self.context.get(CONF_IP_ADDRESS):
+            updates[CONF_IP_ADDRESS] = self.context[CONF_IP_ADDRESS]
+
+        self._abort_if_unique_id_configured(updates=updates)
+
+        if self.context.get(CONF_HOST):
+            self._async_abort_entries_match({CONF_HOST: self.context[CONF_HOST]})
+
+        if self.context.get(CONF_IP_ADDRESS):
+            self._async_abort_entries_match({CONF_IP_ADDRESS: self.context[CONF_IP_ADDRESS]})
 
     async def async_step_user(
         self, user_input: dict[str, Any] | None = None

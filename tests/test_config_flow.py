@@ -23,6 +23,7 @@ import pytest  # noqa: E402
 from homeassistant import config_entries, data_entry_flow  # noqa: E402
 from homeassistant.const import (  # noqa: E402
     CONF_HOST,
+    CONF_IP_ADDRESS,
     CONF_NAME,
     CONF_PORT,
 )
@@ -98,4 +99,43 @@ async def test_dhcp_discovery_already_configured_by_host(flow, mock_hass) -> Non
             await flow.async_step_dhcp(discovery_info)
 
     # We EXPECT this to abort because the host matches an existing entry
+    assert excinfo.value.reason == "already_configured"
+
+
+@pytest.mark.asyncio
+async def test_dhcp_discovery_mismatch_host_match_ip(flow, mock_hass) -> None:
+    """Test we abort if the device is already configured by IP, even if host mismatch."""
+    # Mock an existing entry with IP as host
+    existing_entry = MockConfigEntry(
+        domain=DOMAIN,
+        data={
+            CONF_HOST: "192.168.1.13",
+            CONF_IP_ADDRESS: "192.168.1.13",
+            CONF_PORT: 3000,
+            CONF_NAME: "Living Room",
+        },
+        unique_id="some_random_id"
+    )
+    mock_hass.config_entries.async_entries.return_value = [existing_entry]
+
+    # DHCP discovery info with same IP but resolved to hostname "espressif"
+    discovery_info = MockDhcpServiceInfo(
+        ip="192.168.1.13",
+        hostname="espressif",
+        macaddress="00:11:22:33:44:55"
+    )
+
+    # resolve_host returns hostname, resolve_ip returns IP
+    with patch(  # noqa: SIM117
+        "custom_components.proflame_connect_wifi.config_flow.resolve_host",
+        return_value="espressif"
+    ), patch(
+        "custom_components.proflame_connect_wifi.config_flow.resolve_ip",
+        return_value="192.168.1.13"
+    ):
+        # We EXPECT this to abort because the IP matches an existing entry
+        # Current code fails this test because it only checks CONF_HOST ("espressif" != "192.168.1.13")
+        with pytest.raises(data_entry_flow.AbortFlow) as excinfo:
+            await flow.async_step_dhcp(discovery_info)
+
     assert excinfo.value.reason == "already_configured"
