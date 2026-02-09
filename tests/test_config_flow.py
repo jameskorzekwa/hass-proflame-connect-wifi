@@ -23,7 +23,6 @@ import pytest  # noqa: E402
 from homeassistant import config_entries, data_entry_flow  # noqa: E402
 from homeassistant.const import (  # noqa: E402
     CONF_HOST,
-    CONF_IP_ADDRESS,
     CONF_NAME,
     CONF_PORT,
 )
@@ -103,14 +102,14 @@ async def test_dhcp_discovery_already_configured_by_host(flow, mock_hass) -> Non
 
 
 @pytest.mark.asyncio
-async def test_dhcp_discovery_mismatch_host_match_ip(flow, mock_hass) -> None:
-    """Test we abort if the device is already configured by IP, even if host mismatch."""
-    # Mock an existing entry with IP as host
+async def test_dhcp_discovery_legacy_ip_match(flow, mock_hass) -> None:
+    """Test we abort if the device is already configured by IP (legacy entry), even if host mismatch."""
+    # Mock an existing entry with IP as host, but NO CONF_IP_ADDRESS (legacy case)
     existing_entry = MockConfigEntry(
         domain=DOMAIN,
         data={
             CONF_HOST: "192.168.1.13",
-            CONF_IP_ADDRESS: "192.168.1.13",
+            # Intentionally omitting CONF_IP_ADDRESS to simulate old config
             CONF_PORT: 3000,
             CONF_NAME: "Living Room",
         },

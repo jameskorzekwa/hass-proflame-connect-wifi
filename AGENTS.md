@@ -2,6 +2,10 @@
 
 These instructions are intended for the AI agent to follow when working in this repository.
 
+## Info
+
+the url for my home assistant instance is https://home.jklocal.us
+
 ## On Code Changes
 
 Whenever you modify any code in this repository, you MUST perform the following checks to ensure code quality and correctness:

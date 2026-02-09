@@ -98,9 +98,13 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
         if self.context.get(CONF_HOST):
             self._async_abort_entries_match({CONF_HOST: self.context[CONF_HOST]})
+            # Also check if the current host matches an IP in an existing entry
+            self._async_abort_entries_match({CONF_IP_ADDRESS: self.context[CONF_HOST]})
 
         if self.context.get(CONF_IP_ADDRESS):
             self._async_abort_entries_match({CONF_IP_ADDRESS: self.context[CONF_IP_ADDRESS]})
+            # Also check if the current IP matches a HOST in an existing entry (legacy config)
+            self._async_abort_entries_match({CONF_HOST: self.context[CONF_IP_ADDRESS]})
 
     async def async_step_user(
         self, user_input: dict[str, Any] | None = None
