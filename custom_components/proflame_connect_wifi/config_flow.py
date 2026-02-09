@@ -145,11 +145,12 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         self, discovery_info: DhcpServiceInfo
     ) -> FlowResult:
         """Handle configuration via the UI."""
-        await self._async_set_unique_id(format_mac(discovery_info.macaddress))
-
         self.context[CONF_HOST] = resolve_host(discovery_info.ip)
         self.context[CONF_IP_ADDRESS] = discovery_info.ip
-        in_flight = [x['context'][CONF_IP_ADDRESS] for x in self._async_in_progress()]
+
+        await self._async_set_unique_id(format_mac(discovery_info.macaddress))
+
+        in_flight = [x['context'].get(CONF_IP_ADDRESS) for x in self._async_in_progress()]
         if discovery_info.ip in in_flight:
             return self.async_abort(reason="already_in_progress")
 
