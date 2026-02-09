@@ -1,6 +1,6 @@
 """Test the config flow."""
 import sys
-from unittest.mock import MagicMock, patch
+from unittest.mock import AsyncMock, MagicMock, patch
 
 # Mock DhcpServiceInfo module before ANY imports that might use it
 mock_dhcp_module = MagicMock()
@@ -85,12 +85,17 @@ async def test_dhcp_discovery_already_configured_by_host(flow, mock_hass) -> Non
         macaddress="00:11:22:33:44:55"
     )
 
+    # The abort happens before test_connectivity is reached, but we mock it anyway
     with patch(  # noqa: SIM117
         "custom_components.proflame_connect_wifi.config_flow.resolve_host",
         return_value="192.168.1.13"
     ), patch(
         "custom_components.proflame_connect_wifi.config_flow.resolve_ip",
         return_value="192.168.1.13"
+    ), patch(
+        "custom_components.proflame_connect_wifi.config_flow.test_connectivity",
+        new_callable=AsyncMock,
+        return_value=True,
     ):
         # We simulate the flow call
         # ConfigFlow.async_step_dhcp raises AbortFlow if it aborts
@@ -124,6 +129,7 @@ async def test_dhcp_discovery_legacy_ip_match(flow, mock_hass) -> None:
         macaddress="00:11:22:33:44:55"
     )
 
+    # The abort happens before test_connectivity is reached, but we mock it anyway
     # resolve_host returns hostname, resolve_ip returns IP
     with patch(  # noqa: SIM117
         "custom_components.proflame_connect_wifi.config_flow.resolve_host",
@@ -131,10 +137,47 @@ async def test_dhcp_discovery_legacy_ip_match(flow, mock_hass) -> None:
     ), patch(
         "custom_components.proflame_connect_wifi.config_flow.resolve_ip",
         return_value="192.168.1.13"
+    ), patch(
+        "custom_components.proflame_connect_wifi.config_flow.test_connectivity",
+        new_callable=AsyncMock,
+        return_value=True,
     ):
-        # We EXPECT this to abort because the IP matches an existing entry
-        # Current code fails this test because it only checks CONF_HOST ("espressif" != "192.168.1.13")
+        # We EXPECT this to abort because the IP matches an existing entry's CONF_HOST
         with pytest.raises(data_entry_flow.AbortFlow) as excinfo:
             await flow.async_step_dhcp(discovery_info)
 
     assert excinfo.value.reason == "already_configured"
+
+
+@pytest.mark.asyncio
+async def test_dhcp_discovery_non_proflame_device(flow, mock_hass) -> None:
+    """Test we abort if the discovered ESP device is NOT a Proflame fireplace.
+
+    The DHCP matcher uses hostname "espressif" which matches ANY ESP32/ESP8266
+    device. Only devices that respond to the Proflame protocol should proceed.
+    """
+    # No existing entries
+    mock_hass.config_entries.async_entries.return_value = []
+
+    # DHCP discovery for a generic ESP device (smart plug, ESPHome sensor, etc.)
+    discovery_info = MockDhcpServiceInfo(
+        ip="192.168.0.59",
+        hostname="espressif",
+        macaddress="84:0d:8e:0f:1c:20"
+    )
+
+    with patch(  # noqa: SIM117
+        "custom_components.proflame_connect_wifi.config_flow.resolve_host",
+        return_value="192.168.0.59"
+    ), patch(
+        "custom_components.proflame_connect_wifi.config_flow.resolve_ip",
+        return_value="192.168.0.59"
+    ), patch(
+        "custom_components.proflame_connect_wifi.config_flow.test_connectivity",
+        new_callable=AsyncMock,
+        return_value=False,  # Device does NOT speak Proflame protocol
+    ):
+        result = await flow.async_step_dhcp(discovery_info)
+
+    assert result["type"] == "abort"
+    assert result["reason"] == "not_proflame_device"

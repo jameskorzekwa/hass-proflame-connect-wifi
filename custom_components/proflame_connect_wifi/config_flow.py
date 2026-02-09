@@ -158,6 +158,16 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         if discovery_info.ip in in_flight:
             return self.async_abort(reason="already_in_progress")
 
+        # Verify the device is actually a Proflame fireplace before showing discovery.
+        # The DHCP matcher uses hostname "espressif" which matches ANY ESP device,
+        # so we need to verify this specific device speaks the Proflame protocol.
+        if not await test_connectivity(discovery_info.ip, DEFAULT_PORT):
+            _LOGGER.debug(
+                "DHCP discovered device at %s is not a Proflame fireplace, ignoring",
+                discovery_info.ip,
+            )
+            return self.async_abort(reason="not_proflame_device")
+
         return await self.async_step_discovery_confirm()
 
     async def async_step_discovery_confirm(self, user_input=None):
