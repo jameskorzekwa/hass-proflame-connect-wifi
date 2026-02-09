@@ -1,0 +1,19 @@
+[tool.poetry]
+name = "hass-proflame-connect-wifi"
+version = "0.0.0"
+description = "Proflame Connect Wifi integration for Home Assistant"
+authors = ["Pharrox"]
+readme = "README.md"
+packages = [{include = "custom_components"}]
+
+[tool.poetry.dependencies]
+python = ">=3.11,<3.13"
+homeassistant = "2024.1.1"
+colorlog = "6.7.0"
+
+[tool.poetry.group.dev.dependencies]
+ruff = "0.0.292"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

@@ -16,14 +16,17 @@ jobs:
         - name: "Checkout the repository"
           uses: "actions/checkout@v4.1.0"
 
+        - name: "Install poetry"
+          run: pip install poetry
+
         - name: "Set up Python"
           uses: actions/setup-python@v4.7.1
           with:
             python-version: "3.11"
-            cache: "pip"
+            cache: "poetry"
 
-        - name: "Install requirements"
-          run: python3 -m pip install -r requirements.txt
+        - name: "Install dependencies"
+          run: poetry install
 
         - name: "Run"
-          run: python3 -m ruff check .
+          run: poetry run ruff check .

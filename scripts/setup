@@ -4,4 +4,10 @@ set -e
 
 cd "$(dirname "$0")/.."
 
-python3 -m pip install --requirement requirements.txt
+if command -v pyenv &> /dev/null && [ -f .python-version ]; then
+    pyenv install -s "$(cat .python-version)"
+fi
+
+pip install poetry
+poetry config virtualenvs.in-project true
+poetry install
