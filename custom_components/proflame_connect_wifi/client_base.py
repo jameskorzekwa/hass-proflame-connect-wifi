@@ -93,7 +93,7 @@ class ProflameClientBase:
             except Exception: # pylint: disable=broad-exception-caught
                 self._exception('Unexpected error pending connection')
                 await asyncio.sleep(5)
-            
+
             if not self._auto_reconnect:
                 break
 
