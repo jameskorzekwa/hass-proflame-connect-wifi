@@ -22,6 +22,7 @@ jobs:
         with:
           semantic_version: 23.0.2
       - name: Make Release Body
+        if: steps.semantic_release.outputs.new_release_published == 'true'
         shell: bash
         env:
           PREV_RELEASE: ${{ steps.semantic_release.outputs.last_release_git_tag }}
@@ -30,16 +31,19 @@ jobs:
           echo 'Changes in this Release' > release-body.txt
           git log --pretty=format:%s "${PREV_RELEASE}..${CUR_RELEASE}" | sed 's/^/ - /' >> release-body.txt
       - name: "Adjust version number"
+        if: steps.semantic_release.outputs.new_release_published == 'true'
         shell: "bash"
         run: |
           yq -i -o json '.version="${{ steps.semantic_release.outputs.new_release_version }}"' \
             "${{ github.workspace }}/custom_components/proflame_connect_wifi/manifest.json"
       - name: "ZIP the integration directory"
+        if: steps.semantic_release.outputs.new_release_published == 'true'
         shell: "bash"
         run: |
           cd "${{ github.workspace }}/custom_components/proflame_connect_wifi"
           zip proflame_connect_wifi.zip -r ./
       - name: Create Release
+        if: steps.semantic_release.outputs.new_release_published == 'true'
         uses: softprops/action-gh-release@v1
         with:
           tag_name: ${{ steps.semantic_release.outputs.new_release_git_tag }}
