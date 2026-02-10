@@ -13,16 +13,13 @@ class ApiAttrs(StrEnum):
     FAN_SPEED = "fan_control"
     FIRMWARE_REVISION = "fw_revision"
     FLAME_HEIGHT = "flame_control"
-    FREE_HEAP = "free_heap"
     LIGHT_BRIGHTNESS = "lamp_control"
-    MIN_FREE_HEAP = "min_free_heap"
     OPERATING_MODE = "main_mode"
     PILOT_MODE = "pilot_mode"
     REMOTE_CONTROL = "remote_control"
     SPLIT_FLOW = "split_flow"
     TARGET_TEMPERATURE = "temperature_set"
     TEMPERATURE_UNIT = "temperature_unit"
-    WIFI_SIGNAL_STR = "wifi_signal_str"
 
 
 class ApiControl(StrEnum):

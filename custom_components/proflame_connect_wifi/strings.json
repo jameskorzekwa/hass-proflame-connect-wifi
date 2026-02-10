@@ -46,17 +46,6 @@
         "name": "Flame height"
       }
     },
-    "sensor": {
-      "free_heap": {
-        "name": "Free heap"
-      },
-      "min_free_heap": {
-        "name": "Min free heap"
-      },
-      "wifi_signal_str": {
-        "name": "Wifi signal"
-      }
-    },
     "switch": {
       "fireplace": {
         "name": "Fireplace"
