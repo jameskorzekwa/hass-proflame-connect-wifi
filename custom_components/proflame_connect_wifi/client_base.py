@@ -129,7 +129,7 @@ class ProflameClientBase:
                           "NOT_AN_OBJECT", json.dumps(message))
             return
         for k, v in message.items():
-            if not isinstance(v, (int, str)):
+            if not isinstance(v, int | str):
                 self._warning("Skipping unsupported value type for key '%s': %s", k, type(v))
                 continue
             self._state[k] = v
