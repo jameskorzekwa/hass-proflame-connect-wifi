@@ -124,16 +124,17 @@ class ProflameClientBase:
 
     def _handle_json_message(self, message) -> None:
         """Process a system state message from the websocket."""
-        err_msg = "Received unexpected JSON message (%s) - %s"
         if not isinstance(message, dict):
-            self._warning(err_msg, "NOT_AN_OBJECT", json.dumps(message))
-        elif any(not isinstance(x, int) for x in message.values()):
-            self._warning(err_msg, "UNKNOWN_SCHEMA", json.dumps(message))
-        else:
-            for k, v in message.items():
-                self._state[k] = v
-                for callback in self._callbacks:
-                    callback(k, v)
+            self._warning("Received unexpected JSON message (%s) - %s",
+                          "NOT_AN_OBJECT", json.dumps(message))
+            return
+        for k, v in message.items():
+            if not isinstance(v, (int, str)):
+                self._warning("Skipping unsupported value type for key '%s': %s", k, type(v))
+                continue
+            self._state[k] = v
+            for callback in self._callbacks:
+                callback(k, v)
 
     def _handle_message(self, message):
         """Process a message from the websocket."""

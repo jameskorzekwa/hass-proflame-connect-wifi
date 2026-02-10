@@ -33,6 +33,8 @@ class ProflameClient(ProflameClientBase):
 
     def _track_state(self, key, value) -> None:
         """Track specific state changes to provide enhanced functionality."""
+        if not isinstance(value, int):
+            return
         if key == ApiAttrs.FAN_SPEED and value > 0:
             self._stored_fan_speed = value
         if key == ApiAttrs.FLAME_HEIGHT and value > 0:
