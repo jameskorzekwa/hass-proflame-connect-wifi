@@ -171,6 +171,8 @@ class ProflameClient(ProflameClientBase):
         if preset == Preset.OFF:
             if self.operating_mode != OperatingMode.OFF:
                 self.set_flame_height(0)
+                self.set_light_brightness(0)
+                self.set_fan_speed(0)
                 self.set_operating_mode(OperatingMode.MANUAL)
         if preset == Preset.MANUAL:
             if self.flame_height == 0:
