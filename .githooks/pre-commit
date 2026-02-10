@@ -1,0 +1,19 @@
+#!/bin/sh
+#
+# Pre-commit hook to check for linting errors using ruff.
+#
+
+echo "Running lint checks..."
+
+# Run ruff check. Ideally we run this via poetry as configured.
+# We'll try to find poetry, or fallback to direct ruff usage.
+
+if command -v poetry >/dev/null 2>&1; then
+    if ! poetry run ruff check .; then
+        echo "Error: Linting failed."
+        echo "Run 'scripts/lint' or 'poetry run ruff check . --fix' to automatically fix issues."
+        exit 1
+    fi
+else
+    echo "Warning: poetry not found. Skipping lint check."
+fi
