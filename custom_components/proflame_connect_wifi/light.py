@@ -52,7 +52,7 @@ class ProflameLight(ProflameEntity, LightEntity):
     def is_on(self) -> bool | None:
         """Return true if the primary light is on."""
         brightness = self.brightness
-        return None if brightness is None else brightness
+        return None if brightness is None else brightness > 0
 
     def turn_on(self, **kwargs: Any) -> None:
         """Turn the primary light on."""
