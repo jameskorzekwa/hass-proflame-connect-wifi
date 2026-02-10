@@ -59,8 +59,9 @@ class ProflameLight(ProflameEntity, LightEntity):
         brightness = kwargs.get('brightness', None)
         if brightness is None:
             self._device.turn_on_light()
-        converted = math.ceil(brightness / (255 / MAX_LIGHT_BRIGHTNESS))
-        self._device.set_light_brightness(converted)
+        else:
+            converted = math.ceil(brightness / (255 / MAX_LIGHT_BRIGHTNESS))
+            self._device.set_light_brightness(converted)
 
     def turn_off(self, **kwargs: Any) -> None:
         """Turn the primary light off."""
