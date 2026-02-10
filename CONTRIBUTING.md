@@ -19,6 +19,10 @@ Pull requests are the best way to propose changes to the codebase.
 4. Test you contribution.
 5. Issue that pull request!
 6. Use conventional commits.
+   To help enforce this, run the following command to enable the repository's git hooks:
+   ```bash
+   git config core.hooksPath .githooks
+   ```
 
 ## Any contributions you make will be under the MIT Software License
 
