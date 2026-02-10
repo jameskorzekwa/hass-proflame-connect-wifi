@@ -18,6 +18,7 @@ Pull requests are the best way to propose changes to the codebase.
 3. Make sure your code lints (using `scripts/lint`).
 4. Test you contribution.
 5. Issue that pull request!
+6. Use conventional commits.
 
 ## Any contributions you make will be under the MIT Software License
 
