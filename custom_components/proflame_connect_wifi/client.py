@@ -170,10 +170,12 @@ class ProflameClient(ProflameClientBase):
         """Set the fireplace state based on a preset."""
         if preset == Preset.OFF:
             if self.operating_mode != OperatingMode.OFF:
-                self.set_flame_height(0)
-                self.set_light_brightness(0)
-                self.set_fan_speed(0)
-                self.set_operating_mode(OperatingMode.MANUAL)
+                self.set_state_batch({
+                    ApiAttrs.OPERATING_MODE: OperatingMode.MANUAL,
+                    ApiAttrs.FLAME_HEIGHT: 0,
+                    ApiAttrs.LIGHT_BRIGHTNESS: 0,
+                    ApiAttrs.FAN_SPEED: 0,
+                })
         if preset == Preset.MANUAL:
             if self.flame_height == 0:
                 self.set_flame_height(self._stored_flame)

@@ -201,6 +201,10 @@ class ProflameClientBase:
         """Send a state update to the fireplace."""
         self._queue.put_nowait({field: value})
 
+    def set_state_batch(self, updates: dict[str, int]) -> None:
+        """Send multiple state updates to the fireplace as a single message."""
+        self._queue.put_nowait(updates)
+
     def _debug(self, msg, *args) -> None:
         """Shortcut for debug logging."""
         formatted = f"PF[{self._host}] {msg}"
