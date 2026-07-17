@@ -10,6 +10,7 @@ def coalesce(*args: list[Any]) -> Any | None:
     except StopIteration:
         return None
 
+
 def constrain(value: int, min_value: int, max_value: int):
     """Constrain a number to a specified range."""
     if value < min_value:
@@ -17,6 +18,7 @@ def constrain(value: int, min_value: int, max_value: int):
     if value > max_value:
         return max_value
     return value
+
 
 class Temperature:
     """Helper class for interacting with temperature."""
@@ -29,7 +31,7 @@ class Temperature:
     @staticmethod
     def fahrenheit(value) -> Self:
         """Create temperature from Fahrenheit value."""
-        return Temperature((value - 32) * 5/9)
+        return Temperature((value - 32) * 5 / 9)
 
     def __init__(self, celcius) -> None:
         """Create new instance of the Temperature class."""
@@ -41,4 +43,4 @@ class Temperature:
 
     def to_fahrenheit(self) -> float:
         """Return the temperature value as Fahrenheit."""
-        return (self._value * 9/5) + 32
+        return (self._value * 9 / 5) + 32

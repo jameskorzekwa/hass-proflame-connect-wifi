@@ -21,9 +21,11 @@ from homeassistant.helpers.device_registry import format_mac
 from .client import ProflameClient
 from .const import DEFAULT_DEVICE, DEFAULT_NAME, DEFAULT_PORT, DOMAIN
 
-DISCOVERY_CONFIRM_SCHEMA = vol.Schema({
-    vol.Required(CONF_NAME, default=DEFAULT_NAME): str,
-})
+DISCOVERY_CONFIRM_SCHEMA = vol.Schema(
+    {
+        vol.Required(CONF_NAME, default=DEFAULT_NAME): str,
+    }
+)
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -31,42 +33,57 @@ _LOGGER = logging.getLogger(__name__)
 def build_user_schema(user_input: dict[str, Any] | None = None):
     """Generate user schema while respecting previously input data."""
     state = user_input or {}
-    return vol.Schema({
-        vol.Required(CONF_NAME, default=state.get(CONF_NAME, DEFAULT_NAME)): str,
-        vol.Required(CONF_HOST, default=state.get(CONF_HOST, None)): str,
-        vol.Required(CONF_PORT, default=state.get(CONF_PORT, DEFAULT_PORT)): int,
-        vol.Required(CONF_UNIQUE_ID, default=state.get(CONF_UNIQUE_ID, None)): str,
-    })
+    return vol.Schema(
+        {
+            vol.Required(CONF_NAME, default=state.get(CONF_NAME, DEFAULT_NAME)): str,
+            vol.Required(CONF_HOST, default=state.get(CONF_HOST, None)): str,
+            vol.Required(CONF_PORT, default=state.get(CONF_PORT, DEFAULT_PORT)): int,
+            vol.Required(CONF_UNIQUE_ID, default=state.get(CONF_UNIQUE_ID, None)): str,
+        }
+    )
+
 
 def resolve_host(ip) -> str:
     """Try to get a DNS name from an IP address with verification of forward resolution."""
     try:
         host = socket.getnameinfo((ip, 0), 0)[0]
-        resolved = [x[4][0] for x in socket.getaddrinfo(
-            host=host,
-            port=None,
-            proto=6,
-        )]
+        resolved = [
+            x[4][0]
+            for x in socket.getaddrinfo(
+                host=host,
+                port=None,
+                proto=6,
+            )
+        ]
         return host if ip in resolved else ip
     except socket.gaierror:
         # Host from rDNS isn't forward resolvable
         return ip
 
+
 def resolve_ip(host) -> str:
     """Do DNS resolution for a host to store the IP and prevent duplicate entries."""
-    return [x[4][0] for x in socket.getaddrinfo(
-        host=host,
-        port=None,
-        proto=6,
-    )][0]
+    return [
+        x[4][0]
+        for x in socket.getaddrinfo(
+            host=host,
+            port=None,
+            proto=6,
+        )
+    ][0]
+
 
 async def test_connectivity(host: str, port: int = DEFAULT_PORT) -> bool:
     """Validate fireplace is connectable."""
     return await ProflameClient.test_connection(host, port)
 
+
 async def validate_input(hass: HomeAssistant, data: dict[str, Any]) -> bool:
     """Validate user input."""
-    return await test_connectivity(data[CONF_HOST], data[CONF_PORT],)
+    return await test_connectivity(
+        data[CONF_HOST],
+        data[CONF_PORT],
+    )
 
 
 class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
@@ -102,7 +119,9 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             self._async_abort_entries_match({CONF_IP_ADDRESS: self.context[CONF_HOST]})
 
         if self.context.get(CONF_IP_ADDRESS):
-            self._async_abort_entries_match({CONF_IP_ADDRESS: self.context[CONF_IP_ADDRESS]})
+            self._async_abort_entries_match(
+                {CONF_IP_ADDRESS: self.context[CONF_IP_ADDRESS]}
+            )
             # Also check if the current IP matches a HOST in an existing entry (legacy config)
             self._async_abort_entries_match({CONF_HOST: self.context[CONF_IP_ADDRESS]})
 
@@ -112,25 +131,22 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         """Handle configuration via the UI."""
         if user_input is None:
             return self.async_show_form(
-                data_schema=build_user_schema(),
-                errors={},
-                step_id='user'
+                data_schema=build_user_schema(), errors={}, step_id="user"
             )
-
 
         self._async_abort_entries_match({CONF_HOST: user_input[CONF_HOST]})
 
         connected = await validate_input(self.hass, user_input)
         if not connected:
             _LOGGER.error(
-                'Error while connecting to Proflame fireplace: %s:%s',
+                "Error while connecting to Proflame fireplace: %s:%s",
                 user_input[CONF_HOST],
                 user_input[CONF_PORT],
             )
             return self.async_show_form(
-                step_id='user',
+                step_id="user",
                 data_schema=build_user_schema(user_input),
-                errors={CONF_HOST: 'cannot_connect'}
+                errors={CONF_HOST: "cannot_connect"},
             )
 
         await self._async_set_unique_id(user_input[CONF_UNIQUE_ID])
@@ -140,21 +156,21 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 CONF_HOST: user_input[CONF_HOST],
                 CONF_IP_ADDRESS: resolve_ip(user_input[CONF_HOST]),
                 CONF_PORT: user_input[CONF_PORT],
-                CONF_UNIQUE_ID: self.unique_id
+                CONF_UNIQUE_ID: self.unique_id,
             },
             title=user_input[CONF_NAME],
         )
 
-    async def async_step_dhcp(
-        self, discovery_info: DhcpServiceInfo
-    ) -> FlowResult:
+    async def async_step_dhcp(self, discovery_info: DhcpServiceInfo) -> FlowResult:
         """Handle configuration via the UI."""
         self.context[CONF_HOST] = resolve_host(discovery_info.ip)
         self.context[CONF_IP_ADDRESS] = discovery_info.ip
 
         await self._async_set_unique_id(format_mac(discovery_info.macaddress))
 
-        in_flight = [x['context'].get(CONF_IP_ADDRESS) for x in self._async_in_progress()]
+        in_flight = [
+            x["context"].get(CONF_IP_ADDRESS) for x in self._async_in_progress()
+        ]
         if discovery_info.ip in in_flight:
             return self.async_abort(reason="already_in_progress")
 
@@ -179,15 +195,15 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                     CONF_HOST: self.context[CONF_HOST],
                     CONF_IP_ADDRESS: self.context[CONF_IP_ADDRESS],
                     CONF_PORT: DEFAULT_PORT,
-                    CONF_UNIQUE_ID: self.unique_id
+                    CONF_UNIQUE_ID: self.unique_id,
                 },
                 title=user_input[CONF_NAME],
             )
 
-        self.context["title_placeholders"] = {'device': self._device}
+        self.context["title_placeholders"] = {"device": self._device}
         return self.async_show_form(
             data_schema=DISCOVERY_CONFIRM_SCHEMA,
             description_placeholders=self.context["title_placeholders"],
             errors={},
-            step_id='discovery_confirm'
+            step_id="discovery_confirm",
         )

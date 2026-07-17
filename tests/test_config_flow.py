@@ -35,7 +35,9 @@ from custom_components.proflame_connect_wifi.config_flow import ConfigFlow  # no
 class MockConfigEntry:
     """Mock ConfigEntry class."""
 
-    def __init__(self, domain, data, unique_id, source=config_entries.SOURCE_USER, options=None) -> None:
+    def __init__(
+        self, domain, data, unique_id, source=config_entries.SOURCE_USER, options=None
+    ) -> None:
         """Initialize."""
         self.domain = domain
         self.data = data
@@ -59,7 +61,7 @@ def flow(mock_hass):
     flow = ConfigFlow()
     flow.hass = mock_hass
     flow.handler = DOMAIN  # Needed for async_entries filtering
-    flow.context = {}      # Needed for storing state
+    flow.context = {}  # Needed for storing state
     return flow
 
 
@@ -74,24 +76,22 @@ async def test_dhcp_discovery_already_configured_by_host(flow, mock_hass) -> Non
             CONF_PORT: 3000,
             CONF_NAME: "Living Room",
         },
-        unique_id="some_random_id"
+        unique_id="some_random_id",
     )
     mock_hass.config_entries.async_entries.return_value = [existing_entry]
 
     # DHCP discovery info with same IP but new/valid MAC
     discovery_info = MockDhcpServiceInfo(
-        ip="192.168.1.13",
-        hostname="espressif",
-        macaddress="00:11:22:33:44:55"
+        ip="192.168.1.13", hostname="espressif", macaddress="00:11:22:33:44:55"
     )
 
     # The abort happens before test_connectivity is reached, but we mock it anyway
     with patch(  # noqa: SIM117
         "custom_components.proflame_connect_wifi.config_flow.resolve_host",
-        return_value="192.168.1.13"
+        return_value="192.168.1.13",
     ), patch(
         "custom_components.proflame_connect_wifi.config_flow.resolve_ip",
-        return_value="192.168.1.13"
+        return_value="192.168.1.13",
     ), patch(
         "custom_components.proflame_connect_wifi.config_flow.test_connectivity",
         new_callable=AsyncMock,
@@ -118,25 +118,23 @@ async def test_dhcp_discovery_legacy_ip_match(flow, mock_hass) -> None:
             CONF_PORT: 3000,
             CONF_NAME: "Living Room",
         },
-        unique_id="some_random_id"
+        unique_id="some_random_id",
     )
     mock_hass.config_entries.async_entries.return_value = [existing_entry]
 
     # DHCP discovery info with same IP but resolved to hostname "espressif"
     discovery_info = MockDhcpServiceInfo(
-        ip="192.168.1.13",
-        hostname="espressif",
-        macaddress="00:11:22:33:44:55"
+        ip="192.168.1.13", hostname="espressif", macaddress="00:11:22:33:44:55"
     )
 
     # The abort happens before test_connectivity is reached, but we mock it anyway
     # resolve_host returns hostname, resolve_ip returns IP
     with patch(  # noqa: SIM117
         "custom_components.proflame_connect_wifi.config_flow.resolve_host",
-        return_value="espressif"
+        return_value="espressif",
     ), patch(
         "custom_components.proflame_connect_wifi.config_flow.resolve_ip",
-        return_value="192.168.1.13"
+        return_value="192.168.1.13",
     ), patch(
         "custom_components.proflame_connect_wifi.config_flow.test_connectivity",
         new_callable=AsyncMock,
@@ -161,17 +159,15 @@ async def test_dhcp_discovery_non_proflame_device(flow, mock_hass) -> None:
 
     # DHCP discovery for a generic ESP device (smart plug, ESPHome sensor, etc.)
     discovery_info = MockDhcpServiceInfo(
-        ip="192.168.0.59",
-        hostname="espressif",
-        macaddress="84:0d:8e:0f:1c:20"
+        ip="192.168.0.59", hostname="espressif", macaddress="84:0d:8e:0f:1c:20"
     )
 
     with patch(  # noqa: SIM117
         "custom_components.proflame_connect_wifi.config_flow.resolve_host",
-        return_value="192.168.0.59"
+        return_value="192.168.0.59",
     ), patch(
         "custom_components.proflame_connect_wifi.config_flow.resolve_ip",
-        return_value="192.168.0.59"
+        return_value="192.168.0.59",
     ), patch(
         "custom_components.proflame_connect_wifi.config_flow.test_connectivity",
         new_callable=AsyncMock,

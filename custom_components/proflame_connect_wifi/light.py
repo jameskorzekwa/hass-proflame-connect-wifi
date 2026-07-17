@@ -23,9 +23,12 @@ async def async_setup_entry(
 ) -> None:
     """Create the lights for Proflame fireplaces."""
     entry_id = config_entry.entry_id
-    coordinator: ProflameDataCoordinator = hass.data[DOMAIN][entry_id][PROFLAME_COORDINATOR]
+    coordinator: ProflameDataCoordinator = hass.data[DOMAIN][entry_id][
+        PROFLAME_COORDINATOR
+    ]
     light = ProflameLight(coordinator)
     async_add_entities([light])
+
 
 class ProflameLight(ProflameEntity, LightEntity):
     """Creates a device to control fireplace lights."""
@@ -35,10 +38,13 @@ class ProflameLight(ProflameEntity, LightEntity):
 
     def __init__(self, coordinator: ProflameDataCoordinator) -> None:
         """Create new instance of the ProflameLight class."""
-        super().__init__(coordinator, LightEntityDescription(
-            key='light',
-            translation_key='light',
-        ))
+        super().__init__(
+            coordinator,
+            LightEntityDescription(
+                key="light",
+                translation_key="light",
+            ),
+        )
 
     @property
     def brightness(self) -> int | None:
@@ -56,7 +62,7 @@ class ProflameLight(ProflameEntity, LightEntity):
 
     def turn_on(self, **kwargs: Any) -> None:
         """Turn the primary light on."""
-        brightness = kwargs.get('brightness', None)
+        brightness = kwargs.get("brightness", None)
         if brightness is None:
             self._device.turn_on_light()
         else:

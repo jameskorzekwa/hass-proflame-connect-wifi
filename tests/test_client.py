@@ -6,8 +6,9 @@ from custom_components.proflame_connect_wifi.const import (
     ApiAttrs,
     MAX_FAN_SPEED,
     MIN_FAN_SPEED,
-    OperatingMode
+    OperatingMode,
 )
+
 
 @pytest.fixture
 def client():
@@ -24,6 +25,7 @@ def client():
     }
     return client
 
+
 def test_fan_speed_constraints(client):
     """Test fan speed is constrained."""
     client.set_fan_speed(100)
@@ -34,10 +36,14 @@ def test_fan_speed_constraints(client):
     client.set_fan_speed(-100)
     client._queue.put_nowait.assert_called_with({ApiAttrs.FAN_SPEED: MIN_FAN_SPEED})
 
+
 def test_turn_off(client):
     """Test turn_off method."""
     client.turn_off()
-    client._queue.put_nowait.assert_called_with({ApiAttrs.OPERATING_MODE: OperatingMode.OFF})
+    client._queue.put_nowait.assert_called_with(
+        {ApiAttrs.OPERATING_MODE: OperatingMode.OFF}
+    )
+
 
 def test_tracking_state(client):
     """Test state tracking for restoring state."""

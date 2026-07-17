@@ -1,5 +1,10 @@
 """Tests for the util module."""
-from custom_components.proflame_connect_wifi.util import coalesce, constrain, Temperature
+from custom_components.proflame_connect_wifi.util import (
+    coalesce,
+    constrain,
+    Temperature,
+)
+
 
 def test_coalesce():
     """Test coalesce returns the first non-null argument."""
@@ -8,6 +13,7 @@ def test_coalesce():
     assert coalesce(None, None) is None
     assert coalesce(None, 0, 2) == 0
 
+
 def test_constrain():
     """Test constrain limits numbers to a range."""
     assert constrain(5, 0, 10) == 5
@@ -15,6 +21,7 @@ def test_constrain():
     assert constrain(15, 0, 10) == 10
     assert constrain(0, 0, 10) == 0
     assert constrain(10, 0, 10) == 10
+
 
 def test_temperature_conversion():
     """Test temperature conversion between Celcius and Fahrenheit."""

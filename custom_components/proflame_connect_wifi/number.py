@@ -20,9 +20,12 @@ async def async_setup_entry(
 ) -> None:
     """Create the number for Proflame fireplaces."""
     entry_id = config_entry.entry_id
-    coordinator: ProflameDataCoordinator = hass.data[DOMAIN][entry_id][PROFLAME_COORDINATOR]
+    coordinator: ProflameDataCoordinator = hass.data[DOMAIN][entry_id][
+        PROFLAME_COORDINATOR
+    ]
     flame = ProflameFlame(coordinator)
     async_add_entities([flame])
+
 
 class ProflameFlame(ProflameEntity, NumberEntity):
     """Creates a device to control fireplace lights."""
@@ -34,11 +37,14 @@ class ProflameFlame(ProflameEntity, NumberEntity):
 
     def __init__(self, coordinator: ProflameDataCoordinator) -> None:
         """Create new instance of the ProflameFlame class."""
-        super().__init__(coordinator, NumberEntityDescription(
-            icon='mdi:fire',
-            key='burner',
-            translation_key='burner',
-        ))
+        super().__init__(
+            coordinator,
+            NumberEntityDescription(
+                icon="mdi:fire",
+                key="burner",
+                translation_key="burner",
+            ),
+        )
 
     @property
     def native_value(self) -> float | None:

@@ -32,12 +32,14 @@ class ProflameClientBase:
                     msg = "Proflame connection test to '%s' failed with unexpected response (%s)"
                     _LOGGER.error(msg, uri, response)
                     return False
-        except Exception: # pylint: disable=broad-exception-caught
+        except Exception:  # pylint: disable=broad-exception-caught
             msg = "Encountered error while testing Proflame connection '%s'"
             _LOGGER.exception(msg, uri)
             return False
 
-    def __init__(self, device_id, host, port=None, logger=None, auto_reconnect=True) -> None:
+    def __init__(
+        self, device_id, host, port=None, logger=None, auto_reconnect=True
+    ) -> None:
         """Create new class instance."""
         self._auto_reconnect = auto_reconnect
         self._device_id = device_id
@@ -68,7 +70,7 @@ class ProflameClientBase:
             tasks = []
             try:
                 async with connect(self.uri, ping_interval=None) as websocket:
-                    self._debug('Connection opened')
+                    self._debug("Connection opened")
                     try:
                         self._ws = websocket
                         if not tasks:
@@ -80,7 +82,9 @@ class ProflameClientBase:
                         await self._send(ApiControl.CONN_SYN)
                         await asyncio.gather(*tasks, return_exceptions=True)
                     except (ConnectionClosed, ConnectionClosedError):
-                        msg = 'Attempting to reopen after connection closed unexpectedly'
+                        msg = (
+                            "Attempting to reopen after connection closed unexpectedly"
+                        )
                         self._warning(msg)
                     finally:
                         for task in tasks:
@@ -90,8 +94,8 @@ class ProflameClientBase:
                 await asyncio.sleep(5)
             except asyncio.CancelledError:
                 break
-            except Exception: # pylint: disable=broad-exception-caught
-                self._exception('Unexpected error pending connection')
+            except Exception:  # pylint: disable=broad-exception-caught
+                self._exception("Unexpected error pending connection")
                 await asyncio.sleep(5)
 
             if not self._auto_reconnect:
@@ -109,28 +113,33 @@ class ProflameClientBase:
                 item = None
             except asyncio.CancelledError:
                 break
-            except Exception: # pylint: disable=broad-exception-caught
-                self._exception('Unexpected error during send')
+            except Exception:  # pylint: disable=broad-exception-caught
+                self._exception("Unexpected error during send")
                 await asyncio.sleep(1)
 
     def _handle_control_message(self, message):
         """Process a system control/info message from the websocket."""
         if message == ApiControl.CONN_ACK:
-            self._debug('Connection acknowledged')
+            self._debug("Connection acknowledged")
         elif message == ApiControl.PONG:
-            self._debug('Ping acknowledged')
+            self._debug("Ping acknowledged")
         else:
             self._warning("Received unexpected control message (%s)", message)
 
     def _handle_json_message(self, message) -> None:
         """Process a system state message from the websocket."""
         if not isinstance(message, dict):
-            self._warning("Received unexpected JSON message (%s) - %s",
-                          "NOT_AN_OBJECT", json.dumps(message))
+            self._warning(
+                "Received unexpected JSON message (%s) - %s",
+                "NOT_AN_OBJECT",
+                json.dumps(message),
+            )
             return
         for k, v in message.items():
             if not isinstance(v, int | str):
-                self._warning("Skipping unsupported value type for key '%s': %s", k, type(v))
+                self._warning(
+                    "Skipping unsupported value type for key '%s': %s", k, type(v)
+                )
                 continue
             self._state[k] = v
             for callback in self._callbacks:
@@ -151,8 +160,8 @@ class ProflameClientBase:
                 await self._send(ApiControl.PING)
             except asyncio.CancelledError:
                 break
-            except Exception: # pylint: disable=broad-exception-caught
-                self._exception('Unexpected error during ping')
+            except Exception:  # pylint: disable=broad-exception-caught
+                self._exception("Unexpected error during ping")
                 await asyncio.sleep(1)
 
     async def _listener(self):
@@ -160,12 +169,12 @@ class ProflameClientBase:
         while True:
             try:
                 async for message in self._ws:
-                    self._debug('RECV: %s', message)
+                    self._debug("RECV: %s", message)
                     self._handle_message(message)
             except asyncio.CancelledError:
                 break
-            except Exception: # pylint: disable=broad-exception-caught
-                self._exception('Unexpected error during receive')
+            except Exception:  # pylint: disable=broad-exception-caught
+                self._exception("Unexpected error during receive")
                 await asyncio.sleep(1)
 
     async def _send(self, message) -> None:
@@ -175,7 +184,7 @@ class ProflameClientBase:
 
     async def close(self) -> None:
         """Close the websocket connection."""
-        self._debug('Connection closing')
+        self._debug("Connection closing")
         if self._connection:
             self._connection.cancel()
             await asyncio.gather(self._connection, return_exceptions=True)
@@ -183,7 +192,7 @@ class ProflameClientBase:
         if self._ws is not None:
             await self._ws.close()
             self._ws = None
-        self._debug('Connection closed')
+        self._debug("Connection closed")
 
     def get_state(self, field: str) -> int | None:
         """Query the state of the fireplace."""
@@ -191,7 +200,7 @@ class ProflameClientBase:
 
     async def open(self) -> None:
         """Connect to the Proflame websocket."""
-        self._debug('Connection opening')
+        self._debug("Connection opening")
         self._connection = asyncio.create_task(self._connect())
 
     def register_callback(self, callback) -> None:

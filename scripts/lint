@@ -5,3 +5,4 @@ set -e
 cd "$(dirname "$0")/.."
 
 poetry run ruff check . --fix
+poetry run ruff format .

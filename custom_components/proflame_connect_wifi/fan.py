@@ -23,9 +23,12 @@ async def async_setup_entry(
 ) -> None:
     """Create the fans for Proflame fireplaces."""
     entry_id = config_entry.entry_id
-    coordinator: ProflameDataCoordinator = hass.data[DOMAIN][entry_id][PROFLAME_COORDINATOR]
+    coordinator: ProflameDataCoordinator = hass.data[DOMAIN][entry_id][
+        PROFLAME_COORDINATOR
+    ]
     fan = ProflameFan(coordinator)
     async_add_entities([fan])
+
 
 class ProflameFan(ProflameEntity, FanEntity):
     """Creates a device to control fireplace fan."""
@@ -39,10 +42,13 @@ class ProflameFan(ProflameEntity, FanEntity):
 
     def __init__(self, coordinator: ProflameDataCoordinator) -> None:
         """Create new instance of the ProflameLight class."""
-        super().__init__(coordinator, FanEntityDescription(
-            key='fan',
-            translation_key='fan',
-        ))
+        super().__init__(
+            coordinator,
+            FanEntityDescription(
+                key="fan",
+                translation_key="fan",
+            ),
+        )
 
     @property
     def fan_speed(self) -> int | None:

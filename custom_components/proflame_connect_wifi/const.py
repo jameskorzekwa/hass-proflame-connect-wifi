@@ -58,8 +58,8 @@ class Preset(StrEnum):
 
 DOMAIN = "proflame_connect_wifi"
 
-DEFAULT_DEVICE = 'Proflame Fireplace'
-DEFAULT_NAME = 'Fireplace'
+DEFAULT_DEVICE = "Proflame Fireplace"
+DEFAULT_NAME = "Fireplace"
 DEFAULT_PORT = 88
 
 PROFLAME_CLIENT = "client"

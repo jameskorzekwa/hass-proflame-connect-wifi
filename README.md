@@ -52,5 +52,5 @@ If you want to contribute to this please read the [Contribution guidelines](CONT
 [forum]: https://community.home-assistant.io/
 [license-shield]: https://img.shields.io/github/license/Pharrox/hass-proflame-connect-wifi.svg?style=for-the-badge
 [maintenance-shield]: https://img.shields.io/badge/maintainer-Kevin%20Lucas%20%40Pharrox-blue.svg?style=for-the-badge
-[releases-shield]: https://img.shields.io/github/release/Pharrox/hass-proflame-connect-wifi.svg?style=for-the-badge
-[releases]: https://github.com/Pharrox/hass-proflame-connect-wifi/releases
+[releases-shield]: https://img.shields.io/github/release/jameskorzekwa/hass-proflame-connect-wifi.svg?style=for-the-badge
+[releases]: https://github.com/jameskorzekwa/hass-proflame-connect-wifi/releases

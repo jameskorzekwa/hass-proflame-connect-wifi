@@ -1,0 +1,159 @@
+name: CI and Release
+
+on:
+  push:
+    branches:
+      - main
+    paths-ignore:
+      - AGENTS.md
+      - "**/AGENTS.md"
+  pull_request:
+    branches:
+      - main
+    paths-ignore:
+      - AGENTS.md
+      - "**/AGENTS.md"
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+permissions:
+  contents: read
+
+jobs:
+  ruff:
+    name: Ruff lint and format
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+      - name: Install Poetry
+        run: pipx install poetry
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: poetry
+      - name: Install dependencies
+        run: poetry install --no-interaction
+      - name: Check lint
+        run: poetry run ruff check .
+      - name: Check format
+        run: poetry run ruff format --check .
+
+  tests:
+    name: Pytest
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+      - name: Install Poetry
+        run: pipx install poetry
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: poetry
+      - name: Install dependencies
+        run: poetry install --no-interaction
+      - name: Run tests
+        run: poetry run pytest
+
+  hassfest:
+    name: Hassfest
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+      - name: Run Hassfest
+        uses: home-assistant/actions/hassfest@master
+
+  hacs:
+    name: HACS
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+      - name: Run HACS validation
+        uses: hacs/action@main
+        with:
+          category: integration
+          # Remove once brand images are available in home-assistant/brands.
+          ignore: brands
+
+  release:
+    name: Patch release
+    needs:
+      - ruff
+      - tests
+      - hassfest
+      - hacs
+    if: >-
+      ${{
+        github.event_name == 'push' &&
+        github.ref == 'refs/heads/main' &&
+        needs.ruff.result == 'success' &&
+        needs.tests.result == 'success' &&
+        needs.hassfest.result == 'success' &&
+        needs.hacs.result == 'success'
+      }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Check out repository and tags
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Determine next patch version
+        id: version
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          latest_tag="$(git tag --list 'v[0-9]*.[0-9]*.[0-9]*' --sort=-version:refname | sed -n '1p')"
+          if [[ -n "$latest_tag" ]]; then
+            current_version="${latest_tag#v}"
+          else
+            current_version="$(python -c 'import json; print(json.load(open("custom_components/proflame_connect_wifi/manifest.json"))["version"])')"
+          fi
+
+          if [[ ! "$current_version" =~ ^([0-9]+)\.([0-9]+)\.([0-9]+)$ ]]; then
+            echo "Cannot patch invalid version: $current_version" >&2
+            exit 1
+          fi
+
+          version="${BASH_REMATCH[1]}.${BASH_REMATCH[2]}.$((BASH_REMATCH[3] + 1))"
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "tag=v$version" >> "$GITHUB_OUTPUT"
+      - name: Set manifest version
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          python - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+
+          path = Path("custom_components/proflame_connect_wifi/manifest.json")
+          manifest = json.loads(path.read_text())
+          manifest["version"] = os.environ["VERSION"]
+          path.write_text(json.dumps(manifest, indent=2) + "\n")
+          PY
+      - name: Build HACS ZIP
+        env:
+          ZIP_PATH: ${{ runner.temp }}/proflame_connect_wifi.zip
+        run: |
+          cd custom_components/proflame_connect_wifi
+          zip -r "$ZIP_PATH" .
+      - name: Create tag and GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ steps.version.outputs.tag }}
+          ZIP_PATH: ${{ runner.temp }}/proflame_connect_wifi.zip
+        run: >-
+          gh release create "$TAG" "$ZIP_PATH"
+          --target "$GITHUB_SHA"
+          --title "Release $TAG"
+          --generate-notes
