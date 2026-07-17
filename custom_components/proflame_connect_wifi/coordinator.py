@@ -19,19 +19,19 @@ class ProflameDataCoordinator(DataUpdateCoordinator):
         """Initialize the Proflam coordinator class."""
         super().__init__(
             hass=hass,
-            name='devices',
+            name="devices",
             logger=_LOGGER,
         )
         self.client = client
         self.async_set_updated_data(self.client.full_state)
         self.client.register_callback(self.handle_state_change)
         self.device_name = name
-        self.unique_id = re.sub('[^A-Za-z0-9]+', '', client.device_id)
+        self.unique_id = re.sub("[^A-Za-z0-9]+", "", client.device_id)
         self.device_info = DeviceInfo(
             identifiers={(DOMAIN, self.client.device_id)},
-            manufacturer='Sit Group',
-            model='Generic',
-            name=self.device_name
+            manufacturer="Sit Group",
+            model="Generic",
+            name=self.device_name,
         )
 
     def handle_state_change(self, key: str, value: int) -> None:

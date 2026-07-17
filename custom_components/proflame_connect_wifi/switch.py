@@ -19,20 +19,26 @@ async def async_setup_entry(
 ) -> None:
     """Create the number for Proflame fireplaces."""
     entry_id = config_entry.entry_id
-    coordinator: ProflameDataCoordinator = hass.data[DOMAIN][entry_id][PROFLAME_COORDINATOR]
+    coordinator: ProflameDataCoordinator = hass.data[DOMAIN][entry_id][
+        PROFLAME_COORDINATOR
+    ]
     power = ProflamePower(coordinator)
     async_add_entities([power])
+
 
 class ProflamePower(ProflameEntity, SwitchEntity):
     """Creates a device to control fireplace lights."""
 
     def __init__(self, coordinator: ProflameDataCoordinator) -> None:
         """Create new instance of the ProflameFlame class."""
-        super().__init__(coordinator, SwitchEntityDescription(
-            icon='mdi:fireplace',
-            key='fireplace',
-            translation_key='fireplace',
-        ))
+        super().__init__(
+            coordinator,
+            SwitchEntityDescription(
+                icon="mdi:fireplace",
+                key="fireplace",
+                translation_key="fireplace",
+            ),
+        )
         self._attr_name = None
 
     @property
