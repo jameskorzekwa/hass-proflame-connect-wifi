@@ -89,6 +89,12 @@ class ProflameClient(ProflameClientBase):
         return HVACMode.HEAT
 
     @property
+    def auxiliary_on(self) -> bool | None:
+        """Return true if the auxiliary (AUX) output is on."""
+        value = self.get_state(ApiAttrs.AUXILIARY)
+        return None if value is None else bool(value)
+
+    @property
     def light_brightness(self) -> int | None:
         """Get the current state of the primary light."""
         return self.get_state(ApiAttrs.LIGHT_BRIGHTNESS)
@@ -152,6 +158,10 @@ class ProflameClient(ProflameClientBase):
         mode = self.operating_mode
         return None if mode is None else bool(mode)
 
+    def set_auxiliary(self, on: bool) -> None:
+        """Switch the auxiliary (AUX) output, which drives the light on some units."""
+        self.set_state(ApiAttrs.AUXILIARY, 1 if on else 0)
+
     def set_fan_speed(self, speed: int) -> None:
         """Set the desired speed of the fan."""
         constrained = constrain(speed, MIN_FAN_SPEED, MAX_FAN_SPEED)
@@ -160,9 +170,15 @@ class ProflameClient(ProflameClientBase):
     def set_flame_height(self, height: int) -> None:
         """Set the height of the flame in manual mode."""
         constrained = constrain(height, MIN_FLAME_HEIGHT, MAX_FLAME_HEIGHT)
+        was_on = self.preset not in (None, Preset.OFF)
         self.set_state(ApiAttrs.FLAME_HEIGHT, constrained)
         if constrained > 0 and self.operating_mode not in ADJUSTABLE_MODES:
             self.set_operating_mode(self._stored_mode_adjustable)
+        elif (
+            constrained == 0 and was_on and self.operating_mode == OperatingMode.MANUAL
+        ):
+            # Manual with flame 0 is "off": the light follows the fireplace.
+            self.set_auxiliary(False)
 
     def set_light_brightness(self, brightness: int) -> None:
         """Set the brightness of the primary light."""
@@ -170,8 +186,17 @@ class ProflameClient(ProflameClientBase):
         self.set_state(ApiAttrs.LIGHT_BRIGHTNESS, constrained)
 
     def set_operating_mode(self, mode: OperatingMode) -> None:
-        """Set the primary operating mode of the device."""
+        """Set the primary operating mode of the device.
+
+        The light (AUX output) follows the fireplace: it is switched on when the
+        fireplace is turned on from off, and off when the fireplace turns off.
+        """
+        was_on = self.preset not in (None, Preset.OFF)
         self.set_state(ApiAttrs.OPERATING_MODE, mode)
+        if mode == OperatingMode.OFF:
+            self.set_auxiliary(False)
+        elif not was_on:
+            self.set_auxiliary(True)
 
     def set_pilot_mode(self, mode: PilotMode) -> None:
         """Set the fireplace pilot mode."""
