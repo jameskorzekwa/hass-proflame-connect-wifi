@@ -23,7 +23,8 @@ async def async_setup_entry(
         PROFLAME_COORDINATOR
     ]
     power = ProflamePower(coordinator)
-    async_add_entities([power])
+    light = ProflameAuxLight(coordinator)
+    async_add_entities([power, light])
 
 
 class ProflamePower(ProflameEntity, SwitchEntity):
@@ -57,3 +58,35 @@ class ProflamePower(ProflameEntity, SwitchEntity):
     async def async_turn_on(self, **kwargs: Any) -> None:
         """Turn the fireplace on."""
         self._device.turn_on()
+
+
+class ProflameAuxLight(ProflameEntity, SwitchEntity):
+    """The fireplace light, driven by the IFC auxiliary (AUX) output.
+
+    On fireplaces whose light is wired to the AUX relay this is the light
+    control; the light entity drives the separate dimmable lamp output.
+    """
+
+    def __init__(self, coordinator: ProflameDataCoordinator) -> None:
+        """Create new instance of the ProflameAuxLight class."""
+        super().__init__(
+            coordinator,
+            SwitchEntityDescription(
+                icon="mdi:lightbulb",
+                key="aux_light",
+                translation_key="aux_light",
+            ),
+        )
+
+    @property
+    def is_on(self) -> bool | None:
+        """Return true if the AUX output (light) is on."""
+        return self._device.auxiliary_on
+
+    async def async_turn_on(self, **kwargs: Any) -> None:
+        """Turn the light (AUX output) on."""
+        self._device.set_auxiliary(True)
+
+    async def async_turn_off(self, **kwargs: Any) -> None:
+        """Turn the light (AUX output) off."""
+        self._device.set_auxiliary(False)

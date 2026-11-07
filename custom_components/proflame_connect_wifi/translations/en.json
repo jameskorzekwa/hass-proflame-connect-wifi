@@ -38,17 +38,28 @@
     },
     "light": {
       "light": {
-        "name": "Light"
+        "name": "Lamp output"
       }
     },
     "number": {
       "burner": {
         "name": "Flame height"
+      },
+      "fan_speed": {
+        "name": "Fan speed"
       }
     },
     "switch": {
       "fireplace": {
         "name": "Fireplace"
+      },
+      "aux_light": {
+        "name": "Light"
+      }
+    },
+    "select": {
+      "pilot": {
+        "name": "Pilot"
       }
     }
   }
